@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2024 ootr.jp
  * Copyright (c) 2020 Foorack
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
