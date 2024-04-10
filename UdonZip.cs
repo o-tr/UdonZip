@@ -615,22 +615,22 @@ public class UdonZip : UdonSharpBehaviour
     /**********************
      * I/O UTILITY METHODS
      **********************/
-
-    private short ReadShort(byte[] data, int addr)
-    {
-        var a = data[addr];
-        var b = data[addr + 1];
-        return (short) (b << 8 | a);
+    private short ReadShort(byte[] data, int addr){
+        return BitConverter.ToInt16(data, addr);
+    }
+    
+    private ushort readUshort(byte[] data, int addr){
+        return BitConverter.ToUInt16(data, addr);
+    }
+    
+    private int ReadInt(byte[] data, int addr){
+        return BitConverter.ToInt32(data, addr);
+    }
+    
+    private uint ReadUint(byte[] data, int addr){
+        return BitConverter.ToUInt32(data, addr);
     }
 
-    private int ReadInt(byte[] data, int addr)
-    {
-        var a = data[addr];
-        var b = data[addr + 1];
-        var c = data[addr + 2];
-        var d = data[addr + 3];
-        return d << 24 | c << 16 | b << 8 | a;
-    }
 
     private string ReadString(byte[] data, int addr, int length)
     {
