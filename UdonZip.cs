@@ -384,6 +384,13 @@ public class UdonZip : UdonSharpBehaviour
             if (sym < 256)
             {
                 // d.dest[d.destLen++] = sym;
+                if (((byte[])d[INFLATE_DATA_DEST]).Length <= (int)d[INFLATE_DATA_DEST_LENGTH])
+                {
+                    var tmp = new byte[((byte[])d[INFLATE_DATA_DEST]).Length * 2];
+                    ((byte[])d[INFLATE_DATA_DEST]).CopyTo(tmp, 0);
+                    d[INFLATE_DATA_DEST] = tmp;
+                }
+                
                 ((byte[]) d[INFLATE_DATA_DEST])[(int) d[INFLATE_DATA_DEST_LENGTH]] = (byte) sym;
                 d[INFLATE_DATA_DEST_LENGTH] = (int) d[INFLATE_DATA_DEST_LENGTH] + 1;
             }
@@ -405,6 +412,13 @@ public class UdonZip : UdonSharpBehaviour
                 for (var i = offs; i < offs + length; ++i)
                 {
                     // d.dest[d.destLen++] = d.dest[i];
+                    if (((byte[])d[INFLATE_DATA_DEST]).Length <= (int)d[INFLATE_DATA_DEST_LENGTH])
+                    {
+                        var tmp = new byte[((byte[])d[INFLATE_DATA_DEST]).Length * 2];
+                        ((byte[])d[INFLATE_DATA_DEST]).CopyTo(tmp, 0);
+                        d[INFLATE_DATA_DEST] = tmp;
+                    }
+                    
                     ((byte[]) d[INFLATE_DATA_DEST])[(int) d[INFLATE_DATA_DEST_LENGTH]] =
                         ((byte[]) d[INFLATE_DATA_DEST])[i];
                     d[INFLATE_DATA_DEST_LENGTH] = (int) d[INFLATE_DATA_DEST_LENGTH] + 1;
