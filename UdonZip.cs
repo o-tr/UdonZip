@@ -619,7 +619,7 @@ public class UdonZip : UdonSharpBehaviour
         return BitConverter.ToInt16(data, addr);
     }
     
-    private ushort readUshort(byte[] data, int addr){
+    private ushort ReadUshort(byte[] data, int addr){
         return BitConverter.ToUInt16(data, addr);
     }
     
