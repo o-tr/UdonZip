@@ -1,33 +1,30 @@
 # UdonZip
 
-[![Discord](https://img.shields.io/badge/Discord-Discord%20Support-blueviolet?logo=discord)](https://discord.gg/7xJdWNk) - Feel free to join if you have any bugs or questions!
-
 UdonZip is a ZIP parser written in Udon for VRChat.
 The purpose of this project is for it to be used as an API in other bigger projects.
 This work is something the average VRChatter never will notice, but something the author hopes might be beneficial and make the life easier for world/game creators in VRChat.
 
 An example use of this library is allowing the player to paste the entire contents of an zip file (e.g. game save file) into an Input field in VRC, and allowing the world to then parse the submitted data.
-For this purpose a full XML library has already been implemented, which you can find [here, called UdonXML](https://github.com/Foorack/UdonXML).
 
 ## 🛠️ Setup
 
 ### Requirements
 
-* Unity 2018.4.20f1
-* VRCSDK3
-* Latest [UdonSharp](https://github.com/Merlin-san/UdonSharp/blob/master/README.md)
+* Unity 2022.3.6f1
+* VRChat SDK - Base 3.5.2
+* VRChat SDK - Worlds 3.5.2
 
 ### Installation
 
-1. Go to [Releases](https://github.com/Foorack/UdonZip/releases) and download the latest release. The file should end with `unitypackage`. If you can't find it, ask for help on Discord.
-2. Import the package into Unity with Assets > Import Package > Custom Package. This will import the files to `Resources > Foorack > UdonZip`.
+1. Go to [Releases](https://github.com/o-tr/UdonZip/releases) and download the latest release. The file should end with `unitypackage`. If you can't find it, ask for help on Discord.
+2. Import the package into Unity with Assets > Import Package > Custom Package. This will import the files to `jp.ootr > UdonZip`.
 3. Create an Empty GameObject in your Scene, name it `UdonZip` and assign it the UdonZip UdonBehaviour.
 
 ### Getting started
 
 1. Declare a `public UdonZip udonZip;` variable in your program.
 2. Assign it the value of the UdonZip GameObject in your scene.
-3. Extract your Zip data file with Extract `udonZip.Extract(inputData);`. It will return an object.
+3. Extract your Zip data file with Extract `udonZip.Extract(inputData<byte[]>);`. It will return an object.
 4. The object returned represents the archive of the Zip, use it when executing other API functions such as `GetFile` or `GetFileData`.
 
 ### Example demo
@@ -66,13 +63,13 @@ public class UdonZipTest : UdonSharpBehaviour
         //   The second time and on it will always return the already compressed data, making it significantly faster.
         var fileData = udonZip.GetFileData(file);
         // Efficiently converts the byte array to a string by casting each byte to char.
-        char[] rawXmlData = new char[fileData.Length];
+        char[] rawData = new char[fileData.Length];
         for (var i = 0; i != fileData.Length; i++)
         {
-            rawXmlData[i] = (char) fileData[i];
+            rawData[i] = (char) fileData[i];
         }
 
-        Debug.Log("data:" + new String(rawXmlData));
+        Debug.Log("data:" + new String(rawData));
     }
 }
 ```
@@ -102,10 +99,3 @@ Returns a byte array containing the raw uncompressed data of the file.
 
 The first time you access a file it will decompress it if necessary.
 The second time and on it will always return the already compressed data, making it significantly faster.
-
-
-## 🚛 Roadmap
-
-* Allowing to write and package Zip files, allowing the creation of Zip files.
-* Implementing CRC32 checksum verficiation of decompression.
-* Better error handling. Right now it is sketchy if given invalid/corrupt input data.
