@@ -615,16 +615,8 @@ public class UdonZip : UdonSharpBehaviour
     /**********************
      * I/O UTILITY METHODS
      **********************/
-    private short ReadShort(byte[] data, int addr){
-        return BitConverter.ToInt16(data, addr);
-    }
-    
     private ushort ReadUshort(byte[] data, int addr){
         return BitConverter.ToUInt16(data, addr);
-    }
-    
-    private int ReadInt(byte[] data, int addr){
-        return BitConverter.ToInt32(data, addr);
     }
     
     private uint ReadUint(byte[] data, int addr){
@@ -688,10 +680,10 @@ public class UdonZip : UdonSharpBehaviour
     private object[] ReadEOCD(byte[] data, int addr)
     {
         var eocd = new object[4];
-        eocd[EOCD_TOTAL_CDS] = ReadShort(data, addr + 10); // totalNumbersOfCDS
-        eocd[EOCD_SIZE_OF_CD] = ReadInt(data, addr + 12); // sizeOfCentralDirectory
-        eocd[EOCD_CD_OFFSET] = ReadInt(data, addr + 16); // centralDirectoryOffset
-        var commentLength = ReadShort(data, addr + 20);
+        eocd[EOCD_TOTAL_CDS] = ReadUshort(data, addr + 10); // totalNumbersOfCDS
+        eocd[EOCD_SIZE_OF_CD] = ReadUint(data, addr + 12); // sizeOfCentralDirectory
+        eocd[EOCD_CD_OFFSET] = ReadUint(data, addr + 16); // centralDirectoryOffset
+        var commentLength = ReadUshort(data, addr + 20);
         eocd[EOCD_COMMENT] = ReadString(data, addr + 22, commentLength); // comment
         return eocd;
     }
@@ -723,26 +715,28 @@ public class UdonZip : UdonSharpBehaviour
     private object[] ReadCD(byte[] data, int addr)
     {
         var cd = new object[19];
-        cd[CD_VERSION] = ReadShort(data, addr + 4); // version
-        cd[CD_MIN_VERSION] = ReadShort(data, addr + 6); // version min to extract
-        cd[CD_BITFLAG] = ReadShort(data, addr + 8); // general purpose bit flag
-        cd[CD_COMPRESSION_METHOD] = ReadShort(data, addr + 10); // compression method
-        cd[CD_LAST_MODIFICATION_TIME] = ReadShort(data, addr + 12); // file last modification time
-        cd[CD_LAST_MODIFICATION_DATE] = ReadShort(data, addr + 14); // file last modification date
-        cd[CD_CRC_32] = ReadInt(data, addr + 16); // CRC-32 of uncompressed data
-        cd[CD_COMPRESSED_SIZE] = ReadInt(data, addr + 20); // compressed size
-        cd[CD_UNCOMPRESSED_SIZE] = ReadInt(data, addr + 24); // uncompressed size
-        cd[CD_NAME_LENGTH] = ReadShort(data, addr + 28); // file name length
-        cd[CD_EXTRA_FIELD_LENGTH] = ReadShort(data, addr + 30); // extra field length
-        cd[CD_COMMENT_LENGTH] = ReadShort(data, addr + 32); // file comment length
-        cd[CD_INTERNAL_FILE_ATTR] = ReadShort(data, addr + 36); // internal file attributes
-        cd[CD_EXTERNAL_FILE_ATTR] = ReadInt(data, addr + 38); // external file attributes
-        cd[CD_OFFSET_LFH] = ReadInt(data, addr + 42); // offset of local file header
-        cd[CD_NAME] = ReadString(data, addr + 46, (short) cd[9]); // file name
-        cd[CD_EXTRA_FIELD] = ReadString(data, addr + 46 + (short) cd[9], (short) cd[10]); // extra field
-        cd[CD_COMMENT] = ReadString(data, addr + 46 + (short) cd[9] + (short) cd[10], (short) cd[11]); // file comment
-        cd[CD_START_OF_NEXT_CD] =
-            addr + 46 + (short) cd[9] + (short) cd[10] + (short) cd[11]; // start of next directory
+        cd[CD_VERSION] = ReadUshort(data, addr + 4); // version
+        cd[CD_MIN_VERSION] = ReadUshort(data, addr + 6); // version min to extract
+        cd[CD_BITFLAG] = ReadUshort(data, addr + 8); // general purpose bit flag
+        cd[CD_COMPRESSION_METHOD] = ReadUshort(data, addr + 10); // compression method
+        cd[CD_LAST_MODIFICATION_TIME] = ReadUshort(data, addr + 12); // file last modification time
+        cd[CD_LAST_MODIFICATION_DATE] = ReadUshort(data, addr + 14); // file last modification date
+        cd[CD_CRC_32] = ReadUint(data, addr + 16); // CRC-32 of uncompressed data
+        cd[CD_COMPRESSED_SIZE] = ReadUint(data, addr + 20); // compressed size
+        cd[CD_UNCOMPRESSED_SIZE] = ReadUint(data, addr + 24); // uncompressed size
+        var nameLength = ReadUshort(data, addr + 28);
+        cd[CD_NAME_LENGTH] = nameLength; // file name length
+        var extraFieldLength = ReadUshort(data, addr + 30);
+        cd[CD_EXTRA_FIELD_LENGTH] = extraFieldLength; // extra field length
+        var commentLength = ReadUshort(data, addr + 32);
+        cd[CD_COMMENT_LENGTH] = commentLength; // file comment length
+        cd[CD_INTERNAL_FILE_ATTR] = ReadUshort(data, addr + 36); // internal file attributes
+        cd[CD_EXTERNAL_FILE_ATTR] = ReadUint(data, addr + 38); // external file attributes
+        cd[CD_OFFSET_LFH] = ReadUint(data, addr + 42); // offset of local file header
+        cd[CD_NAME] = ReadString(data, addr + 46, nameLength); // file name
+        cd[CD_EXTRA_FIELD] = ReadString(data, addr + 46 + nameLength, extraFieldLength); // extra field
+        cd[CD_COMMENT] = ReadString(data, addr + 46 + nameLength + extraFieldLength, commentLength); // file comment
+        cd[CD_START_OF_NEXT_CD] = addr + 46 + nameLength + extraFieldLength + commentLength; // start of next directory
 
         return cd;
     }
@@ -767,19 +761,21 @@ public class UdonZip : UdonSharpBehaviour
     private object[] ReadLFH(byte[] data, int addr)
     {
         var lfh = new object[13];
-        lfh[LFH_MIN_VERSION] = ReadShort(data, addr + 4); // version min to extract
-        lfh[LFH_BITFLAG] = ReadShort(data, addr + 6); // general purpose bit flag
-        lfh[LFH_COMPRESSION_METHOD] = ReadShort(data, addr + 8); // compression method
-        lfh[LFH_LAST_MODIFICATION_TIME] = ReadShort(data, addr + 10); // file last modification time
-        lfh[LFH_LAST_MODIFICATION_DATE] = ReadShort(data, addr + 12); // file last modification date
-        lfh[LFH_CRC_32] = ReadInt(data, addr + 14); // CRC-32 of uncompressed data
-        lfh[LFH_COMPRESSED_SIZE] = ReadInt(data, addr + 18); // compressed size
-        lfh[LFH_UNCOMPRESSED_SIZE] = ReadInt(data, addr + 22); // uncompressed size
-        lfh[LFH_NAME_LENGTH] = ReadShort(data, addr + 26); // file name length
-        lfh[LFH_EXTRA_FIELD_LENGTH] = ReadShort(data, addr + 28); // extra field length
-        lfh[LFH_NAME] = ReadString(data, addr + 30, (short) lfh[8]); // file name
-        lfh[LFH_EXTRA_FIELD] = ReadString(data, addr + 30 + (short) lfh[8], (short) lfh[9]); // extra field
-        lfh[LFH_START_OF_DATA] = addr + 30 + (short) lfh[8] + (short) lfh[9]; // start of data
+        lfh[LFH_MIN_VERSION] = ReadUshort(data, addr + 4); // version min to extract
+        lfh[LFH_BITFLAG] = ReadUshort(data, addr + 6); // general purpose bit flag
+        lfh[LFH_COMPRESSION_METHOD] = ReadUshort(data, addr + 8); // compression method
+        lfh[LFH_LAST_MODIFICATION_TIME] = ReadUshort(data, addr + 10); // file last modification time
+        lfh[LFH_LAST_MODIFICATION_DATE] = ReadUshort(data, addr + 12); // file last modification date
+        lfh[LFH_CRC_32] = ReadUint(data, addr + 14); // CRC-32 of uncompressed data
+        lfh[LFH_COMPRESSED_SIZE] = ReadUint(data, addr + 18); // compressed size
+        lfh[LFH_UNCOMPRESSED_SIZE] = ReadUint(data, addr + 22); // uncompressed size
+        var nameLength = ReadUshort(data, addr + 26);
+        lfh[LFH_NAME_LENGTH] = nameLength; // file name length
+        var extraFieldLength = ReadUshort(data, addr + 28);
+        lfh[LFH_EXTRA_FIELD_LENGTH] = extraFieldLength; // extra field length
+        lfh[LFH_NAME] = ReadString(data, addr + 30, nameLength); // file name
+        lfh[LFH_EXTRA_FIELD] = ReadByteArray(data, addr + 30 + nameLength, extraFieldLength); // extra field
+        lfh[LFH_START_OF_DATA] = addr + 30 + nameLength + extraFieldLength; // start of data
 
         return lfh;
     }
